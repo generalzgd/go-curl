@@ -9,6 +9,7 @@ package curl
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"io"
@@ -19,17 +20,17 @@ import (
 
 // Request构造类
 type Request struct {
-	cli             *http.Client
-	req             *http.Request
-	Raw             *http.Request
-	Method          string
-	Url             string
-	dialTimeout     time.Duration
-	responseTimeOut time.Duration
-	Headers         map[string]string
-	Cookies         map[string]string
-	Queries         map[string]string
-	PostData        map[string]interface{}
+	cli                *http.Client
+	req                *http.Request
+	Raw                *http.Request
+	Method             string
+	Url                string
+	dialTimeout        time.Duration
+	responseTimeOut    time.Duration
+	Headers            map[string]string
+	Cookies            map[string]string
+	Queries            map[string]string
+	PostData           map[string]interface{}
 	insecureSkipVerify bool
 }
 
@@ -141,12 +142,12 @@ func (this *Request) PATCH() (*Response, error) {
 	return this.Send(this.Url, http.MethodPatch)
 }
 
-//SetDialTimeOut
+// SetDialTimeOut
 func (this *Request) SetDialTimeOut(TimeOutSecond int) {
 	this.dialTimeout = time.Duration(TimeOutSecond)
 }
 
-//SetResponseTimeOut
+// SetResponseTimeOut
 func (this *Request) SetResponseTimeOut(TimeOutSecond int) {
 	this.responseTimeOut = time.Duration(TimeOutSecond)
 }
@@ -165,7 +166,7 @@ func (this *Request) Send(url string, method string) (*Response, error) {
 	response := NewResponse()
 	// 初始化http.Client对象
 	this.cli = &http.Client{
-		////////
+		// //////
 		Transport: &http.Transport{
 			Dial: func(netw, addr string) (net.Conn, error) {
 				conn, err := net.DialTimeout(netw, addr, time.Second*this.dialTimeout)
@@ -176,10 +177,11 @@ func (this *Request) Send(url string, method string) (*Response, error) {
 				return conn, nil
 			},
 			ResponseHeaderTimeout: time.Second * this.responseTimeOut,
-			TLSClientConfig: {InsecureSkipVerify:this.insecureSkipVerify},
+			TLSClientConfig:       &tls.Config{InsecureSkipVerify: this.insecureSkipVerify},
 		},
-		////////////
+		// //////////
 	}
+
 	// 加载用户自定义的post数据到http.Request
 	var payload io.Reader
 	if method == "POST" && this.PostData != nil {
