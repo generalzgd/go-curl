@@ -30,6 +30,7 @@ type Request struct {
 	Cookies         map[string]string
 	Queries         map[string]string
 	PostData        map[string]interface{}
+	insecureSkipVerify bool
 }
 
 // 创建一个Request实例
@@ -38,6 +39,11 @@ func NewRequest() *Request {
 	r.dialTimeout = 5
 	r.responseTimeOut = 5
 	return r
+}
+
+func (this *Request) SetInsecureSkipVerify(val bool) *Request {
+	this.insecureSkipVerify = val
+	return this
 }
 
 // 设置请求方法
@@ -170,6 +176,7 @@ func (this *Request) Send(url string, method string) (*Response, error) {
 				return conn, nil
 			},
 			ResponseHeaderTimeout: time.Second * this.responseTimeOut,
+			TLSClientConfig: {InsecureSkipVerify:this.insecureSkipVerify},
 		},
 		////////////
 	}
